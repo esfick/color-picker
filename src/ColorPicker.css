@@ -1,8 +1,9 @@
 :root {
   --color-palette-height: 300px;
   --color-palette-width: 600px;
+  --cursor-size: 20px;
   --gradient-width: 500px;
-  --slider-height: 20px;
+  --slider-height: 24px;
 }
 
 .color-palette {
@@ -25,15 +26,17 @@
     position: relative;
     height: var(--color-palette-height);
     width: var(--gradient-width);
-   
 }
 
-#gradient-cursor {
+#gradient-cursor, #slider-cursor {
     position: absolute;
     top: 0;
     right:  0;
     z-index: 2;
-    
+    height: var(--cursor-size);
+	width: var(--cursor-size);
+    border: 2px solid white;
+    border-radius: calc(var(--cursor-size)/2);
 }
 
 .inner-container {
@@ -63,13 +66,11 @@
 	position: relative;
 	height: var(--slider-height);
 	width: var(--color-palette-width);
-    
 }
 
-#slider-cursor {
+/*#slider-cursor {
     position: absolute;
     top: 0;
     right:  0;
     z-index: 2;
-    
-}
+}*/
