@@ -7,29 +7,20 @@ export default class ColorPicker extends Component {
 	constructor(props){
  		super(props);
         this.state = {
-            hue: 70
+            hue: 70,
+            hex: [2, 2, 2]
         }
-		/*this.state = {
-			canvasX: 0,
-			canvasY: 0,
-			cursorX: 0,
-			cursorY: 0,
-			hex: '#FFFFFF'
-		};*/
 		this.onChangeHue = this.onChangeHue.bind();
-	/*	this.handleDrag = this.handleDrag.bind();
-		this.initializeCursor = this.initializeCursor.bind();
-		this.initializeGradient = this.initializeGradient.bind();
-		this.recolor = this.recolor.bind();*/
+        this.onChangeHex = this.onChangeHex.bind();
 	}
 
     render(){
         return(
             <div className="main-container">
                 <div className="inner-container">
-                    <Gradient hue = {this.state.hue}/>
+                    <Gradient hue = {this.state.hue} changeHex = {this.onChangeHex} />
                     <Slider hue = {this.state.hue} changeHue = {this.onChangeHue}/>
-                    {this.state.hue}
+                    {this.state.hex}
                 </div>
             </div>
         );
@@ -38,6 +29,12 @@ export default class ColorPicker extends Component {
     onChangeHue = (data) => {
         this.setState({
             hue: data
+        });
+    }
+
+    onChangeHex = (data) => {
+        this.setState({
+            hex: data
         });
     }
 

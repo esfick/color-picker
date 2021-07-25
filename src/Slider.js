@@ -12,9 +12,9 @@ export default class Gradient extends Component {
     render(){
         return(
             <div className="slider-container">
-                <canvas id="slider" height="20px" width="600px"></canvas>
+                <canvas id="slider" height="24px" width="600px" onClick={this.handleSliderClick}></canvas>
                 <Draggable bounds="parent" onDrag={this.handleDrag}>
-                    <canvas id="slider-cursor" width="20px" height="20px"></canvas>
+                    <div id="slider-cursor"></div>
                 </Draggable>
             </div>
         );
@@ -33,17 +33,6 @@ export default class Gradient extends Component {
 		grd.addColorStop(1, "#FF00FF");
 		ctx.fillStyle = grd;
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const cursor = document.getElementById('slider-cursor');
-        const cursorCtx = cursor.getContext('2d');
-        
-        cursorCtx.beginPath();
-        cursorCtx.arc(10, 10, 10, 0, 2 * Math.PI, false);
-        cursorCtx.fillStyle = "black";
-        cursorCtx.fill();
-        cursorCtx.strokeStyle = "white";
-        cursorCtx.stroke();
-
     }
 
     handleDrag = (e) => {
@@ -54,6 +43,22 @@ export default class Gradient extends Component {
         const hue = convertRGBToHue(rgb[0], rgb[1], rgb[2]);
         this.props.changeHue(hue);
 	}
+
+    handleSliderClick = (e) => {
+        const canvas = document.getElementById('slider');
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.getBoundingClientRect();
+        const cursor = document.getElementById('slider-cursor');
+        const cursorRect = cursor.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        if(x > rect.width - cursorRect.width){
+            x = rect.width - cursorRect.width;
+        }
+        cursor.style.left = x + 'px';
+        const rgb =  ctx.getImageData(e.clientX - rect.left, 0, 1, 1).data;
+        const hue = convertRGBToHue(rgb[0], rgb[1], rgb[2]);
+        this.props.changeHue(hue);
+    }
 
 
 }
