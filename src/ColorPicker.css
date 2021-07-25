@@ -1,0 +1,75 @@
+:root {
+  --color-palette-height: 300px;
+  --color-palette-width: 600px;
+  --gradient-width: 500px;
+  --slider-height: 20px;
+}
+
+.color-palette {
+	display: flex;
+    margin: 10px;
+}
+
+#current-color {
+	background-color: black;
+}
+
+#gradient-canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+}
+
+.gradient-container {
+    position: relative;
+    height: var(--color-palette-height);
+    width: var(--gradient-width);
+   
+}
+
+#gradient-cursor {
+    position: absolute;
+    top: 0;
+    right:  0;
+    z-index: 2;
+    
+}
+
+.inner-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-container {
+    width: 100vw;
+    height: 100vh;
+}
+
+#slider-canvas {
+	position: absolute;
+	top: 50%;
+    margin-top: -15px;
+	left: 0;
+    padding-top: 10px;
+	z-index: 1;
+}
+
+.slider-container {
+	position: relative;
+	height: var(--slider-height);
+	width: var(--color-palette-width);
+    
+}
+
+#slider-cursor {
+    position: absolute;
+    top: 0;
+    right:  0;
+    z-index: 2;
+    
+}
