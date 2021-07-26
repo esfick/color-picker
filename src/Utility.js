@@ -1,73 +1,87 @@
 const hexDict = {
-    10: "A",
-    11: "B",
-    12: "C",
-    13: "D",
-    14: "E",
-    15: "F"
+    10: 'A',
+    11: 'B',
+    12: 'C',
+    13: 'D',
+    14: 'E',
+    15: 'F'
 }
 
-export const getHexValue = (value) => {
-    let div = Math.floor(value / 16);
-    let rem = value % 16;
-    if(div >= 10){
-        div = hexDict[div];
-    }
-    if(rem >= 10){
-        rem = hexDict[rem];
-    }
-    return div + "" + rem;
-}
-
-export const convertHueToRGB = (hue) => {
+export const convertHslToRgb = (h, s, l) => {
+    s /= 100;
+    l /= 100;
+    const c = s * (1 - Math.abs(2 * l - 1));
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c/2;
     let r = 0, g = 0, b = 0;
-    const c = 1
-    const x = 1 - Math.abs((hue/60) % 2 - 1);
-    if(hue < 60){
-        r = 1;
+    if(h < 60){
+        r = c;
         g = x;
         b = 0;
     }
-    else if(hue < 120){
+    else if(h < 120){
         r = x;
-        g = 1;
+        g = c;
         b = 0;
     }
-    else if(hue < 180){
+    else if(h < 180){
         r = 0;
-        g = 1;
+        g = c;
         b = x;
     }
-    else if(hue < 240){
+    else if(h < 240){
         r = 0;
         g = x;
-        b = 1;
+        b = c;
     }
-    else if(hue < 300){
+    else if(h < 300){
         r = x;
         g = 0;
-        b = 1;
+        b = c;
     }
     else {
-        r = 1;
+        r = c;
         g = 0;
         b = x;
     }
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+    return {
+        r: r,
+        g: g,
+        b: b
+    }
 }
 
-export const convertRGBToHue = (red, green, blue) => {
-    const r = red/255;
-    const g = green/255;
-    const b = blue/255;
+export const convertRgbToHex = (r, g, b) => {
+    let hex = '';
+    [r, g, b].forEach((value, i) => {
+        let div = Math.floor(value / 16);
+        let rem = value % 16;
+        if(div >= 10){
+            div = hexDict[div];
+        }
+        if(rem >= 10){
+            rem = hexDict[rem];
+        }
+        hex += div + '' + rem;
+    })
+    return hex;
+}
+
+export const convertRgbToHsl = (r, g, b) => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
     const cMax = Math.max(r, g, b);
     const cMin = Math.min(r, g, b);
     const delta = cMax - cMin;
     let hue = 0;
     if(delta === 0){
-        return hue;
+        hue = 0;
     }
-    if(cMax === r){
+    else if(cMax === r){
         hue = (g - b)/delta;
         hue %= 6;
     }
@@ -79,5 +93,19 @@ export const convertRGBToHue = (red, green, blue) => {
         hue = (r - g)/delta;
         hue += 4;
     }
-    return hue * 60;
+    hue *= 60;
+
+    let lgt = (cMax + cMin)/2;
+    let sat = 0;
+    if(delta !== 0){
+        sat = delta/(1 - Math.abs(2 * lgt - 1));
+    }
+
+    return {
+        h: Math.round(hue),
+        s: Math.round(sat * 100),
+        l: Math.round(lgt * 100)
+    }
 }
+
+
