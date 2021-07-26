@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Draggable, {DraggableCore} from 'react-draggable';
-import { getHexValue } from './Utility';
+import Draggable from 'react-draggable';
+import { convertRgbToHsl } from './Utility';
 import './ColorPicker';
 
 export default class Gradient extends Component {
@@ -16,7 +16,7 @@ export default class Gradient extends Component {
             <div className="color-palette">
                 <canvas id="current-color" height="300px" width="100px"></canvas>
                 <div className="gradient-container">
-                    <canvas id="gradient" height="300px" width="500px" onClick={this.handleGradientClick}></canvas>
+                    <canvas id="gradient" height="300px" width="500px"></canvas>
                     <Draggable bounds="parent" onDrag={this.handleDrag}>
                         <div id="gradient-cursor"></div>
                     </Draggable>
@@ -27,19 +27,19 @@ export default class Gradient extends Component {
 
 	 componentDidMount(){
         this.drawGradient();
-        this.drawColor();
+        this.drawColor(true);
  	}
 
     shouldComponentUpdate(nextProps, nextState){
-        if(nextProps.hue !== this.props.hue){
+        if(nextProps.color.hue !== this.props.color.hue){
             this.drawGradient();
-            this.drawColor();
+            this.drawColor(false);
             return true;
         }
         return false;
     }
 
-    drawColor = () => {
+    drawColor = (changeHsl) => {
         const canvas = document.getElementById('gradient');
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
@@ -48,10 +48,18 @@ export default class Gradient extends Component {
         const cursor = document.getElementById('gradient-cursor');
         const cursorRect = cursor.getBoundingClientRect();
         const rgb =  ctx.getImageData(cursorRect.left - rect.left, cursorRect.top - rect.top, 1, 1).data;
-        const hex = '#' + getHexValue(rgb[0]) + getHexValue(rgb[1]) + getHexValue(rgb[2]);
-        currentColorCtx.fillStyle = hex;
+        currentColorCtx.fillStyle = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
         currentColorCtx.fillRect(0, 0, canvas.width, canvas.height);
-        this.props.changeHex(hex);
+        if(changeHsl){
+            const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
+            const lightness = this.props.color.lightness === hsl.l? this.props.color.lightness: hsl.l;
+            const saturation = this.props.color.saturation === hsl.s? this.props.color.saturation: hsl.s;
+            this.props.changeHsl({
+                hue: this.props.color.hue,
+                lightness: lightness,
+                saturation: saturation
+            });
+        }
     }
 
     drawGradient = () => {
@@ -59,8 +67,8 @@ export default class Gradient extends Component {
  		const ctx = canvas.getContext('2d');
  		ctx.drawImage(new Image(), 0, 0, canvas.width, canvas.height);
  		let grd1 = ctx.createLinearGradient(0, 0, canvas.width, 0);
- 		grd1.addColorStop(0, "#FFFFFF");
- 		grd1.addColorStop(1,  'hsl(' + this.props.hue + ', 100%, 50%)');
+ 		grd1.addColorStop(0, '#FFFFFF');
+ 		grd1.addColorStop(1,  'hsl(' + this.props.color.hue + ', 100%, 50%)');
 		let grd2 = ctx.createLinearGradient(0, 0, 0, canvas.height);
 		grd2.addColorStop(0, 'rgba(0,0,0,0)');
 		grd2.addColorStop(1,  '#000000');
@@ -71,10 +79,10 @@ export default class Gradient extends Component {
     }
 
     handleDrag = (e) => {
-        this.drawColor();
+        this.drawColor(true);
 	}
 
-    handleGradientClick = (e) => {
+    /*handleGradientClick = (e) => {
         const canvas = document.getElementById('gradient');
         const rect = canvas.getBoundingClientRect();
         const cursor = document.getElementById('gradient-cursor');
@@ -90,5 +98,5 @@ export default class Gradient extends Component {
         cursor.style.left = x + 'px';
         cursor.style.top = y + 'px';
         this.drawColor();
-    }
+    }*/
 }

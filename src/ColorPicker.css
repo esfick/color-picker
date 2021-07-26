@@ -11,6 +11,26 @@
     margin: 10px;
 }
 
+.color-values-container {
+    display: flex;
+}
+
+.color-values{
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.color-value-input{
+    width: 50px;
+}
+
+.color-value-input-lg{
+    width: 80px;
+}
+
+
 #current-color {
 	background-color: black;
 }
@@ -68,9 +88,3 @@
 	width: var(--color-palette-width);
 }
 
-/*#slider-cursor {
-    position: absolute;
-    top: 0;
-    right:  0;
-    z-index: 2;
-}*/
