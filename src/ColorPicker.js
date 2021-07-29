@@ -39,12 +39,17 @@ export default class ColorPicker extends Component {
 	}
 
     render(){
+        const height = 400;
+        const width = 500;
+        const sliderWidth = width * 1.2
+        const cursorSize = 24;
         return(
             <div className="main-container">
                 <div className="inner-container">
+
+                    <Gradient hsl = {this.state.hsl} changeHsl = {this.onChangeHsl} height = {height} width = {width} cursorSize = {cursorSize}/>
+                    <Slider hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} width = {sliderWidth} cursorSize={cursorSize}/>
                     
-                    <Gradient hsl = {this.state.hsl} changeHsl = {this.onChangeHsl} />
-                    <Slider hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl}/>
                     <form>
                         <label>
                             Hue 

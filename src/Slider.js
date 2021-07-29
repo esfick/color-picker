@@ -9,14 +9,23 @@ export default class Gradient extends Component {
     constructor(props){
         super(props);
         this.moveCursorToHue = this.moveCursorToHue.bind(this);
+        this.state = {
+            left: 0
+        }
     }
 
     render(){
         return(
             <div className="slider-container">
-                <canvas id="slider" height="24px" width="600px"></canvas>
-                <Draggable bounds="parent" onDrag={this.handleDrag}>
-                    <div id="slider-cursor"></div>
+                <canvas id="slider" height={this.props.cursorSize + "px"} width={this.props.width + "px"}></canvas>
+                <Draggable bounds={{
+                        top: 0,
+                        left: this.state.left * -1, 
+                        right: this.props.width - this.state.left, 
+                        bottom: 0
+                    }} 
+                    onDrag={this.handleDrag}>
+                    <div id="slider-cursor" style={{borderRadius: (this.props.cursorSize * 1.5) + "px", height: this.props.cursorSize + "px", width: this.props.cursorSize + "px"}}></div>
                 </Draggable>
             </div>
             
@@ -49,7 +58,17 @@ export default class Gradient extends Component {
         const canvas = document.getElementById('slider');
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
-        const rgb =  ctx.getImageData(e.clientX - rect.left, 0, 1, 1).data;
+        const cursor = document.getElementById('slider-cursor');
+        const cursorRect = cursor.getBoundingClientRect();
+        let left = e.clientX - rect.left + (cursorRect.width/2);
+        if(left < 0){
+            left = 0;
+        }
+        else if(left > rect.width - 1){
+            left = rect.width - 1;
+        }
+        const rgb =  ctx.getImageData(left, 0, 1, 1).data;
+        document.getElementById('slider-cursor').style.backgroundColor = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
         const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
         const hue = hsl.h;
         this.props.changeHsl({
@@ -75,7 +94,11 @@ export default class Gradient extends Component {
             }
         }
         const cursor = document.getElementById('slider-cursor');
-        cursor.style.left = x + 'px';
+        cursor.style.left = (x - (cursor.getBoundingClientRect().width/2)) + 'px';
+        cursor.style.backgroundColor = 'hsl(' + this.props.hsl.hue + ', 100%, 50%)';
+        this.setState({
+            left: x
+        });
     }
 
     /*handleSliderClick = (e) => {
@@ -93,4 +116,6 @@ export default class Gradient extends Component {
         const hue = convertRGBToHue(rgb[0], rgb[1], rgb[2]);
         this.props.changeHue(hue);
     }*/
+
+    
 }
