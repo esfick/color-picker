@@ -37,16 +37,12 @@
     position: relative;
 }
 
-#gradient-cursor, #slider-cursor {
+.cursor {
     position: absolute;
     top: 0;
     right:  0;
     border: 2px solid black;
     box-sizing: border-box;
-}
-
-.cursor {
-    border: 2px solid black;
 }
 
 .inner-container {

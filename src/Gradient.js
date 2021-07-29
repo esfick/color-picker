@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import Draggable from 'react-draggable';
 import { convertRgbToHsl } from './Utility';
 import './ColorPicker';
 import { ColorChangeSource } from './ColorPicker';
+import Cursor from './Cursor';
 
 export default class Gradient extends Component {
 
     constructor(props){
         super(props);
-        this.recolorCursorAndPalette = this.recolorCursorAndPalette.bind(this);
+        this.cursorRef = React.createRef();
+        this.recolor = this.recolor.bind(this);
         this.drawColor = this.drawColor.bind(this);
         this.drawGradient = this.drawGradient.bind(this);
     }
@@ -21,15 +22,16 @@ export default class Gradient extends Component {
                 </div>
                 <div className="gradient-container">
                     <canvas id="gradient" height={this.props.height + "px"} width={this.props.width + "px"}></canvas>
-                    <Draggable bounds={{
-                            top: (this.props.cursorSize/2) * -1, 
-                            left: -1 * (this.props.width - (this.props.cursorSize/2)), 
-                            right: this.props.cursorSize/2, 
-                            bottom: this.props.height - (this.props.cursorSize/2)
-                        }} 
-                        onDrag={this.handleDrag}>
-                        <div id="gradient-cursor" style={{borderRadius: (this.props.cursorSize * 1.5) + "px", height: this.props.cursorSize + "px", width: this.props.cursorSize + "px"}}></div>
-                    </Draggable>
+                    <Cursor ref={this.cursorRef}
+                        id={"gradient-cursor"} 
+                        canvasId={"gradient"}
+                        handleDrag = {this.handleDrag}
+                        hsl = {this.props.hsl}
+                        top={(this.props.cursorSize/2) * -1} 
+                        left = {-1 * (this.props.width - (this.props.cursorSize/2))} 
+                        right = {this.props.cursorSize/2} 
+                        bottom = {this.props.height - (this.props.cursorSize/2)} 
+                        cursorSize = {this.props.cursorSize}/>
                 </div>
              </div>
 		 );
@@ -70,7 +72,7 @@ export default class Gradient extends Component {
             top = rect.height - 1;
         }
         const rgb =  ctx.getImageData(left, top, 1, 1).data;
-        this.recolorCursorAndPalette(rgb);
+        this.recolor(rgb);
         if(changeHsl){
             const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
             const lightness = this.props.hsl.lightness === hsl.l? this.props.hsl.lightness: hsl.l;
@@ -100,7 +102,7 @@ export default class Gradient extends Component {
  		ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    handleDrag = (e) => {
+    handleDrag = (data) => {
         this.drawColor(true);
 	}
 
@@ -122,13 +124,12 @@ export default class Gradient extends Component {
         this.drawColor();
     }*/
 
-    recolorCursorAndPalette = (rgb) => {
-        const ids = ['current-color']
+    recolor = (rgb) => {
         const canvas = document.getElementById('current-color');
         const ctx = canvas.getContext('2d');
         const color = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        document.getElementById('gradient-cursor').style.backgroundColor = color;
+        this.cursorRef.current.setBackgroundColor(color);
     }
 }
