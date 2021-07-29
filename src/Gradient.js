@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Draggable from 'react-draggable';
 import { convertRgbToHsl } from './Utility';
 import './ColorPicker';
+import { ColorChangeSource } from './ColorPicker';
 
 export default class Gradient extends Component {
 
@@ -31,7 +32,7 @@ export default class Gradient extends Component {
  	}
 
     shouldComponentUpdate(nextProps, nextState){
-        if(nextProps.color.hue !== this.props.color.hue){
+        if(nextProps.hsl.hue !== this.props.hsl.hue){
             this.drawGradient();
             this.drawColor(false);
             return true;
@@ -52,12 +53,13 @@ export default class Gradient extends Component {
         currentColorCtx.fillRect(0, 0, canvas.width, canvas.height);
         if(changeHsl){
             const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
-            const lightness = this.props.color.lightness === hsl.l? this.props.color.lightness: hsl.l;
-            const saturation = this.props.color.saturation === hsl.s? this.props.color.saturation: hsl.s;
+            const lightness = this.props.hsl.lightness === hsl.l? this.props.hsl.lightness: hsl.l;
+            const saturation = this.props.hsl.saturation === hsl.s? this.props.hsl.saturation: hsl.s;
             this.props.changeHsl({
-                hue: this.props.color.hue,
+                hue: this.props.hsl.hue,
                 lightness: lightness,
-                saturation: saturation
+                saturation: saturation,
+                source: ColorChangeSource.GRADIENT
             });
         }
     }
@@ -68,7 +70,7 @@ export default class Gradient extends Component {
  		ctx.drawImage(new Image(), 0, 0, canvas.width, canvas.height);
  		let grd1 = ctx.createLinearGradient(0, 0, canvas.width, 0);
  		grd1.addColorStop(0, '#FFFFFF');
- 		grd1.addColorStop(1,  'hsl(' + this.props.color.hue + ', 100%, 50%)');
+ 		grd1.addColorStop(1,  'hsl(' + this.props.hsl.hue + ', 100%, 50%)');
 		let grd2 = ctx.createLinearGradient(0, 0, 0, canvas.height);
 		grd2.addColorStop(0, 'rgba(0,0,0,0)');
 		grd2.addColorStop(1,  '#000000');
