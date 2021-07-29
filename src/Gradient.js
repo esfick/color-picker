@@ -1,26 +1,37 @@
 import React, { Component } from 'react';
-import Draggable from 'react-draggable';
 import { convertRgbToHsl } from './Utility';
 import './ColorPicker';
 import { ColorChangeSource } from './ColorPicker';
+import Cursor from './Cursor';
 
 export default class Gradient extends Component {
 
     constructor(props){
         super(props);
-        this.drawColor = this.drawColor.bind();
-        this.drawGradient = this.drawGradient.bind();
+        this.cursorRef = React.createRef();
+        this.recolor = this.recolor.bind(this);
+        this.drawColor = this.drawColor.bind(this);
+        this.drawGradient = this.drawGradient.bind(this);
     }
 
 	render(){
-	   	 return(
+	   	return(
             <div className="color-palette">
-                <canvas id="current-color" height="300px" width="100px"></canvas>
+                <div className="current-color-container">
+                    <canvas id="current-color" height={this.props.height + "px"} width={this.props.width/5 + "px"}></canvas>
+                </div>
                 <div className="gradient-container">
-                    <canvas id="gradient" height="300px" width="500px"></canvas>
-                    <Draggable bounds="parent" onDrag={this.handleDrag}>
-                        <div id="gradient-cursor"></div>
-                    </Draggable>
+                    <canvas id="gradient" height={this.props.height + "px"} width={this.props.width + "px"}></canvas>
+                    <Cursor ref={this.cursorRef}
+                        id={"gradient-cursor"} 
+                        canvasId={"gradient"}
+                        handleDrag = {this.handleDrag}
+                        hsl = {this.props.hsl}
+                        top={(this.props.cursorSize/2) * -1} 
+                        left = {-1 * (this.props.width - (this.props.cursorSize/2))} 
+                        right = {this.props.cursorSize/2} 
+                        bottom = {this.props.height - (this.props.cursorSize/2)} 
+                        cursorSize = {this.props.cursorSize}/>
                 </div>
              </div>
 		 );
@@ -44,13 +55,24 @@ export default class Gradient extends Component {
         const canvas = document.getElementById('gradient');
         const ctx = canvas.getContext('2d');
         const rect = canvas.getBoundingClientRect();
-        const currentColor = document.getElementById('current-color');
-        const currentColorCtx = currentColor.getContext('2d');
         const cursor = document.getElementById('gradient-cursor');
         const cursorRect = cursor.getBoundingClientRect();
-        const rgb =  ctx.getImageData(cursorRect.left - rect.left, cursorRect.top - rect.top, 1, 1).data;
-        currentColorCtx.fillStyle = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
-        currentColorCtx.fillRect(0, 0, canvas.width, canvas.height);
+        let left = (cursorRect.left + (cursorRect.width/2)) - rect.left;
+        if(left < 0){
+            left = 0;
+        }
+        else if(left > rect.width - 1){
+            left = rect.width - 1;
+        }
+        let top = (cursorRect.top + (cursorRect.height/2)) - rect.top;
+        if(top < 0){
+            top = 0;
+        }
+        else if(top > rect.height - 1){
+            top = rect.height - 1;
+        }
+        const rgb =  ctx.getImageData(left, top, 1, 1).data;
+        this.recolor(rgb);
         if(changeHsl){
             const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
             const lightness = this.props.hsl.lightness === hsl.l? this.props.hsl.lightness: hsl.l;
@@ -80,7 +102,7 @@ export default class Gradient extends Component {
  		ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    handleDrag = (e) => {
+    handleDrag = (data) => {
         this.drawColor(true);
 	}
 
@@ -101,4 +123,13 @@ export default class Gradient extends Component {
         cursor.style.top = y + 'px';
         this.drawColor();
     }*/
+
+    recolor = (rgb) => {
+        const canvas = document.getElementById('current-color');
+        const ctx = canvas.getContext('2d');
+        const color = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.cursorRef.current.setBackgroundColor(color);
+    }
 }

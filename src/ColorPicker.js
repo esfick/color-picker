@@ -1,14 +1,25 @@
 import React, { Component } from 'react';
+import ColorForm from './ColorForm';
 import './ColorPicker.css';
 import Gradient from './Gradient';
 import Slider from './Slider';
-import {convertHslToRgb, convertRgbToHex} from './Utility';
+import {convertHslToRgb, convertRgbToHex, convertRgbToHsl} from './Utility';
 
 export const ColorChangeSource = {
     FORM: 'FORM',
     GRADIENT: 'GRADIENT',
     SLIDER: 'SLIDER'
 };
+
+export const FormFieldType = {
+    BLUE: 'B',
+    GRN: 'G',
+    HEX: 'Hex',
+    HUE: 'H',
+    LGT: 'L',
+    RED: 'R',
+    SAT: 'S'
+}
 
 export default class ColorPicker extends Component {
 	constructor(props){
@@ -33,36 +44,23 @@ export default class ColorPicker extends Component {
             source: ColorChangeSource.SLIDER
         }
         
-        this.handleFormChange = this.handleFormChange.bind(this);
-        this.onChangeHsl = this.onChangeHsl.bind();
-        
+        this.onFormChange = this.onFormChange.bind(this);
+        this.onChangeHsl = this.onChangeHsl.bind(this);
+        this.updateState = this.updateState.bind(this);
 	}
 
     render(){
+        const height = 400;
+        const width = 500;
+        const sliderWidth = width * 1.2
+        const cursorSize = 24;
         return(
             <div className="main-container">
                 <div className="inner-container">
-                    
-                    <Gradient hsl = {this.state.hsl} changeHsl = {this.onChangeHsl} />
-                    <Slider hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl}/>
-                    <form>
-                        <label>
-                            Hue 
-                            <input id="input-hue" type="number" value={this.state.hsl.hue} onChange={this.handleFormChange}/>
-                        </label>
-                        <label>
-                            R 
-                            <input id="input-red" type="number" value={this.state.rgb.red} onChange={this.handleFormChange}/>
-                        </label>
-                        <label>
-                            G 
-                            <input id="input-green" type="number" value={this.state.rgb.green} onChange={this.handleFormChange}/>
-                        </label>
-                        <label>
-                            B 
-                            <input id="input-blue" type="number" value={this.state.rgb.blue} onChange={this.handleFormChange}/>
-                        </label>
-                    </form>
+
+                    <Gradient hsl = {this.state.hsl} changeHsl = {this.onChangeHsl} height = {height} width = {width} cursorSize = {cursorSize}/>
+                    <Slider hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} width = {sliderWidth} cursorSize={cursorSize}/>
+                    <ColorForm hsl = {this.state.hsl} rgb = {this.state.rgb} hex = {this.state.hex}  changeForm = {this.onFormChange}/>
                 </div>
             </div>
         );
@@ -71,59 +69,55 @@ export default class ColorPicker extends Component {
     onChangeHsl = (data) => {
         const rgb = convertHslToRgb(data.hue, data.saturation, data.lightness);
         const hex = convertRgbToHex(rgb.r, rgb.g, rgb.b);
-        this.setState({
-            hsl: {
-                hue: data.hue,
-                saturation: data.saturation,
-                lightness: data.lightness
-            },
-            rgb: {
-                red: rgb.r,
-                green: rgb.g,
-                blue: rgb.b
-            },
-            hex: hex,
-            source: data.source
-        });
-        
-    }
-
-    handleFormChange = (e) => {
-        const rgb = convertHslToRgb(e.target.value, this.state.saturation, this.state.lightness);
-        const hex = convertRgbToHex(rgb.r, rgb.g, rgb.b);
-        this.setState({
-            hsl: {
-                ...this.state.hsl,
-                hue: e.target.value,
-            },
-            rgb: {
-                red: rgb.r,
-                green: rgb.g,
-                blue: rgb.b
-            },
-            hex: hex,
-            source: ColorChangeSource.FORM
-        });
+        this.updateState(data.hue, data.saturation, data.lightness, rgb.r, rgb.g, rgb.b, hex, data.source);
     }
 
 
-   /* onChangeFormValue = (data) => {
+    onFormChange = (data) => {
+        console.log('in onFormChange');
+        const type = data.type;
+        const source = ColorChangeSource.FORM;
         console.log(data);
-        if(data.field == 'hue'){
-        const rgb = convertHslToRgb(data.hue, this.state.color.saturation, this.state.color.lightness);
-        const hex = convertRgbToHex(rgb.r, rgb.g, rgb.b);
+        if(type === FormFieldType.HUE || type === FormFieldType.SAT || type === FormFieldType.LGT){
+            const h = type === FormFieldType.HUE? parseInt(data.value): this.state.hsl.hue;
+            const s = type === FormFieldType.SAT? parseInt(data.value): this.state.hsl.saturation;
+            const l = type === FormFieldType.LGT? parseInt(data.value): this.state.hsl.lightness;
+            const rgb = convertHslToRgb(h, s, l);
+            const hex = convertRgbToHex(rgb.r, rgb.g, rgb.b);
+            this.updateState(h, s, l, rgb.r, rgb.g, rgb.b, hex, source);
+        }
+        else if(type === FormFieldType.RED || type === FormFieldType.GRN || type === FormFieldType.BLUE){
+            const r = type === FormFieldType.RED? parseInt(data.value): this.state.rgb.red;
+            const g = type === FormFieldType.GRN? parseInt(data.value): this.state.rgb.green;
+            const b = type === FormFieldType.BLUE? parseInt(data.value): this.state.rgb.blue;
+            //TODO get HSL
+            const hsl = convertRgbToHsl(r, g, b);
+            const hex = convertRgbToHex(r, g, b);
+            this.updateState(hsl.h, hsl.s, hsl.l, r, g, b, hex, source);
+        }
+        else if(type === FormFieldType.HEX){
+           // TODO only update if there are 6 chars
+            this.updateState(this.state.hsl.hue, this.state.hsl.saturation, this.state.hsl.lightness, this.state.rgb.red, this.state.rgb.green, this.state.rgb.blue, data.value, source);
+        }
+
+    }
+
+    updateState = (h, s, l, r, g, b, hex, source) => {
         this.setState({
-            color: {
-                hue: data.value,
-                saturation: this.state.color.saturation,
-                lightness: this.state.color.lightness,
-                red: rgb.r,
-                green: rgb.g,
-                blue: rgb.b,
-                hex: hex
-            }
+            hsl: {
+                hue: h,
+                saturation: s,
+                lightness: l
+            },
+            rgb: {
+                red: r,
+                green: g,
+                blue: b
+            },
+            hex: hex,
+            source: source
         });
-    
-    }*/
+    }
+
 
 }
