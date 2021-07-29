@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import Draggable from 'react-draggable';
 import { convertRgbToHsl } from './Utility';
 import './ColorPicker.css';
+import { ColorChangeSource } from './ColorPicker';
 
 export default class Gradient extends Component {
 
     constructor(props){
         super(props);
-        this.moveCursorToHue = this.moveCursorToHue.bind();
+        this.moveCursorToHue = this.moveCursorToHue.bind(this);
     }
 
     render(){
@@ -20,6 +21,12 @@ export default class Gradient extends Component {
             </div>
             
         );
+    }
+
+    componentDidUpdate = (prevProps, prevState) => {
+        if(this.props.hsl.hue != prevProps.hsl.hue && this.props.source === ColorChangeSource.FORM){
+            this.moveCursorToHue();
+        }
     }
 
     componentDidMount(){
@@ -45,7 +52,12 @@ export default class Gradient extends Component {
         const rgb =  ctx.getImageData(e.clientX - rect.left, 0, 1, 1).data;
         const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
         const hue = hsl.h;
-        this.props.changeHsl({hue: hue, saturation: this.props.color.saturation, lightness: this.props.color.lightness});
+        this.props.changeHsl({
+            hue: hue, 
+            saturation: this.props.hsl.saturation, 
+            lightness: this.props.hsl.lightness,
+            source: ColorChangeSource.SLIDER
+        });
 	}
 
     moveCursorToHue = () => {
@@ -57,7 +69,7 @@ export default class Gradient extends Component {
         for(let i = 0; i < rgb.length/4; i++){
             const hsl = convertRgbToHsl(rgb[i * 4], rgb[i * 4 + 1], rgb[i * 4 + 2]);
             const hue = hsl.h;
-            if(hue >= this.props.color.hue){
+            if(hue >= this.props.hsl.hue){
                 x = i;
                 break;
             }
