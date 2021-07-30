@@ -1,3 +1,7 @@
+export const MAX_HUE = 300;
+export const MAX_RGB = 255;
+export const MAX_SL = 100;
+
 const hexDict = {
     10: 'A',
     11: 'B',
@@ -7,9 +11,24 @@ const hexDict = {
     15: 'F'
 }
 
+export const convertHexToRgb = (hex) => {
+    hex = hex.padEnd(6, '0');
+    let r = hex.substring(0, 2);
+    let g = hex.substring(2, 4);
+    let b = hex.substring(4, 6);
+    return {
+        r: parseInt(r, 16),
+        g: parseInt(g, 16),
+        b: parseInt(b, 16)
+    }
+}
+
 export const convertHslToRgb = (h, s, l) => {
-    s /= 100;
-    l /= 100;
+    h = h === ''? 0: h;
+    s = s === ''? 0: s;
+    l = l === ''? 0: l;
+    s /= MAX_SL;
+    l /= MAX_SL;
     const c = s * (1 - Math.abs(2 * l - 1));
     const x = c * (1 - Math.abs((h / 60) % 2 - 1));
     const m = l - c/2;
@@ -44,9 +63,9 @@ export const convertHslToRgb = (h, s, l) => {
         g = 0;
         b = x;
     }
-    r = Math.round((r + m) * 255);
-    g = Math.round((g + m) * 255);
-    b = Math.round((b + m) * 255);
+    r = Math.round((r + m) * MAX_RGB);
+    g = Math.round((g + m) * MAX_RGB);
+    b = Math.round((b + m) * MAX_RGB);
     return {
         r: r,
         g: g,
@@ -55,6 +74,9 @@ export const convertHslToRgb = (h, s, l) => {
 }
 
 export const convertRgbToHex = (r, g, b) => {
+    r = r === ''? 0: r;
+    g = g === ''? 0: g;
+    b = b === ''? 0: b;
     let hex = '';
     [r, g, b].forEach((value, i) => {
         let div = Math.floor(value / 16);
@@ -71,9 +93,9 @@ export const convertRgbToHex = (r, g, b) => {
 }
 
 export const convertRgbToHsl = (r, g, b) => {
-    r /= 255;
-    g /= 255;
-    b /= 255;
+    r = r === ''? 0: r/MAX_RGB;
+    g = g === ''? 0: g/MAX_RGB;
+    b = b === ''? 0: b/MAX_RGB;
     const cMax = Math.max(r, g, b);
     const cMin = Math.min(r, g, b);
     const delta = cMax - cMin;
@@ -83,7 +105,7 @@ export const convertRgbToHsl = (r, g, b) => {
     }
     else if(cMax === r){
         hue = (g - b)/delta;
-        hue %= 6;
+        hue += g < b? 6: 0;
     }
     else if(cMax === g){
         hue = (b - r)/delta;
@@ -103,9 +125,10 @@ export const convertRgbToHsl = (r, g, b) => {
 
     return {
         h: Math.round(hue),
-        s: Math.round(sat * 100),
-        l: Math.round(lgt * 100)
+        s: Math.round(sat * MAX_SL),
+        l: Math.round(lgt * MAX_SL)
     }
 }
+
 
 

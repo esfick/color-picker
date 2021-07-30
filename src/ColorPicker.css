@@ -3,27 +3,42 @@
     margin: 10px;
 }
 
-.color-values-container {
-    display: flex;
-}
-
-.color-values{
-    margin: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.color-value-input{
-    width: 50px;
-}
-
-.color-value-input-lg{
-    width: 80px;
-}
-
 #current-color {
 	background-color: black;
+}
+
+.color-form {
+    display: flex;
+    justify-content: space-between;
+}
+
+.color-form-section {
+    display: flex;
+}
+
+.color-input, .color-input-label {
+    font-family:  'Roboto', sans-serif;
+}
+
+.color-input {
+    margin: 2px 2px 0 0;
+    box-sizing: border-box;
+    border: 1px solid #DDDDDD;
+    padding: 5px;
+    font-size: 16px;
+}
+
+.color-input-label {
+    font-size: 18px;
+    text-align: left;
+}
+
+.color-input:focus {
+    border: 1px solid blue;
+}
+
+.form-container {
+    margin-top: 10px;
 }
 
 #gradient-canvas {
@@ -41,7 +56,7 @@
     position: absolute;
     top: 0;
     right:  0;
-    border: 2px solid black;
+    border: 2px solid white;
     box-sizing: border-box;
 }
 
