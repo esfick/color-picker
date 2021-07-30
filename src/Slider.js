@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { convertRgbToHsl } from './Utility';
+import { convertRgbToHsl, MAX_HUE } from './Utility';
 import './ColorPicker.css';
 import { ColorChangeSource } from './ColorPicker';
 import Cursor from './Cursor';
@@ -85,16 +85,15 @@ export default class Gradient extends Component {
 	}
 
     moveCursorToHue = () => {
-        const maxHue = 300;
         let x = 0;
         if(this.props.hsl.hue < 0){
             x = 0;
         }
-        else if(this.props.hsl.hue > maxHue){
+        else if(this.props.hsl.hue > MAX_HUE){
             x = this.props.width - 1;
         }
         else {
-            x = Math.floor(this.props.hsl.hue * (this.props.width/maxHue));
+            x = Math.floor(this.props.hsl.hue * (this.props.width/MAX_HUE));
         }
         this.setState({
             left: x

@@ -6,26 +6,32 @@ export default class ColorInput extends Component {
 
     render(){
         const inputType = this.props.type === FormFieldType.HEX? 'text': 'number';
+        const className = this.props.type === FormFieldType.HEX? 'input-hex': 'input-num';
+
         return(
-            <div className="color-input-field">
+            <div style={{width: this.props.width + "px"}}>
                 <div className="color-input-label">{this.props.type}</div>
                 <div className="color-input-field">
-                    <input type={inputType} min={this.props.min} max={this.props.max} onChange={this.onChange} value={this.props.value}/>
+                    <input 
+                        className={"color-input " + className} 
+                        type={inputType} 
+                        
+                        max={this.props.max} 
+                        onChange={this.onChange} 
+                        value={this.props.value}
+                        style={{width: this.props.width + "px"}}/>
                 </div>
             </div>                
         );
     }
 
     onChange = (e) => {
-        console.log('in onchange');
-        const value = e.target.value;
+        let value = e.target.value;
         const valid = this.props.validate(value);
         if(valid){
             this.props.onChange({type: this.props.type, value: value});
         }
-        else{
-            console.log('invalid');
-        }
+
     }
 
 }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { convertRgbToHsl } from './Utility';
+import { convertRgbToHsl, MAX_SL } from './Utility';
 import './ColorPicker';
 import { ColorChangeSource } from './ColorPicker';
 import Cursor from './Cursor';
@@ -9,7 +9,7 @@ export default class Gradient extends Component {
     constructor(props){
         super(props);
         this.cursorRef = React.createRef();
-        this.recolor = this.recolor.bind(this);
+        this.changeCursorPosition = this.changeCursorPosition.bind(this);
         this.drawColor = this.drawColor.bind(this);
         this.drawGradient = this.drawGradient.bind(this);
     }
@@ -42,9 +42,14 @@ export default class Gradient extends Component {
         this.drawColor(true);
  	}
 
-    shouldComponentUpdate(nextProps, nextState){
-        if(nextProps.hsl.hue !== this.props.hsl.hue){
-            this.drawGradient();
+     componentDidUpdate(prevProps, prevState){
+        if(prevProps.hsl !== this.props.hsl){
+            if(prevProps.hsl.hue !== this.props.hsl.hue){
+                this.drawGradient();
+            }
+            if(this.props.source === ColorChangeSource.FORM && (prevProps.hsl.saturation !== this.props.hsl.saturation || prevProps.hsl.lightness !== this.props.hsl.lightness)){
+                this.changeCursorPosition();
+            }
             this.drawColor(false);
             return true;
         }
@@ -92,7 +97,8 @@ export default class Gradient extends Component {
  		ctx.drawImage(new Image(), 0, 0, canvas.width, canvas.height);
  		let grd1 = ctx.createLinearGradient(0, 0, canvas.width, 0);
  		grd1.addColorStop(0, '#FFFFFF');
- 		grd1.addColorStop(1,  'hsl(' + this.props.hsl.hue + ', 100%, 50%)');
+        let hue = this.props.hsl.hue === ''? 0: this.props.hsl.hue;
+ 		grd1.addColorStop(1,  'hsl(' + hue + ', 100%, 50%)');
 		let grd2 = ctx.createLinearGradient(0, 0, 0, canvas.height);
 		grd2.addColorStop(0, 'rgba(0,0,0,0)');
 		grd2.addColorStop(1,  '#000000');
@@ -106,23 +112,48 @@ export default class Gradient extends Component {
         this.drawColor(true);
 	}
 
-    /*handleGradientClick = (e) => {
-        const canvas = document.getElementById('gradient');
-        const rect = canvas.getBoundingClientRect();
-        const cursor = document.getElementById('gradient-cursor');
-        const cursorRect = cursor.getBoundingClientRect();
-        let x = e.clientX - rect.left;
-        let y = e.clientY - rect.top;
-        if(x > rect.width - cursorRect.width){
-            x = rect.width - cursorRect.width;
+
+    changeCursorPosition = () => {
+        let x = 0, y = 0;
+        const l = this.props.hsl.lightness;
+        const s = this.props.hsl.saturation;
+        // If lightness is 0% then this color is black. Set to bottom left corner regardless of other values
+        if(l === 0){
+            x = 0;
+            y = this.props.height;
         }
-        if(y > rect.height - cursorRect.height){
-            y = rect.height - cursorRect.height;
+
+        // If lightness is 100%, then this color is white. Set to top left corner regardless of other values
+        else if(l === MAX_SL){
+            x = 0;
+            y = 0;
         }
-        cursor.style.left = x + 'px';
-        cursor.style.top = y + 'px';
-        this.drawColor();
-    }*/
+        
+        // If saturation is 0% then this color will be found along the leftmost edge 
+        else if(s === 0){
+            x = 0;
+            // y depends on lightness
+        }
+
+        // If saturation is 100% then this color will be found along the rightmost edge 
+        else if(s === MAX_SL){
+            x = this.props.width;
+            // y depends on lightness
+        }   
+
+        // Find x coordinate based on saturation
+
+
+
+
+       // this.cursorRef.current.setXCoordinate(x);
+      //  this.cursorRef.current.setYCoordinate(y);
+
+
+/*
+        console.log(document.getElementById('gradient').getBoundingClientRect());
+        console.log(this.props.hsl.saturation + ' ' + this.props.hsl.lightness);*/
+    }
 
     recolor = (rgb) => {
         const canvas = document.getElementById('current-color');
@@ -132,4 +163,6 @@ export default class Gradient extends Component {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         this.cursorRef.current.setBackgroundColor(color);
     }
+
+    
 }
