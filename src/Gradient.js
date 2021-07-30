@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { convertRgbToHsl, MAX_SL } from './Utility';
+import { MAX_SL } from './Utility';
 import './ColorPicker';
 import { ColorChangeSource } from './ColorPicker';
 import Cursor from './Cursor';
@@ -15,23 +15,23 @@ export default class Gradient extends Component {
     }
 
 	render(){
+        const id = 'gradient';
 	   	return(
             <div className="color-palette">
                 <div className="current-color-container">
                     <canvas id="current-color" height={this.props.height + "px"} width={this.props.width/5 + "px"}></canvas>
                 </div>
                 <div className="gradient-container">
-                    <canvas id="gradient" height={this.props.height + "px"} width={this.props.width + "px"}></canvas>
+                    <canvas id={id} height={this.props.height + "px"} width={this.props.width + "px"} onClick={this.handleGradientClick}></canvas>
                     <Cursor ref={this.cursorRef}
-                        id={"gradient-cursor"} 
-                        canvasId={"gradient"}
+                        id={id + "-cursor"} 
+                        canvasId={id}
+                        canvasWidth={this.props.width}
+                        canvasHeight={this.props.height}
                         handleDrag = {this.handleDrag}
                         hsl = {this.props.hsl}
-                        top={(this.props.cursorSize/2) * -1} 
-                        left = {-1 * (this.props.width - (this.props.cursorSize/2))} 
-                        right = {this.props.cursorSize/2} 
-                        bottom = {this.props.height - (this.props.cursorSize/2)} 
-                        cursorSize = {this.props.cursorSize}/>
+                        cursorSize = {this.props.cursorSize}
+                        moveVertically={true}/>
                 </div>
              </div>
 		 );
@@ -47,7 +47,8 @@ export default class Gradient extends Component {
             if(prevProps.hsl.hue !== this.props.hsl.hue){
                 this.drawGradient();
             }
-            if(this.props.source === ColorChangeSource.FORM && (prevProps.hsl.saturation !== this.props.hsl.saturation || prevProps.hsl.lightness !== this.props.hsl.lightness)){
+            if(this.props.source === ColorChangeSource.FORM 
+                && (prevProps.hsl.saturation !== this.props.hsl.saturation || prevProps.hsl.lightness !== this.props.hsl.lightness)){
                 this.changeCursorPosition();
             }
             this.drawColor(false);
@@ -57,29 +58,9 @@ export default class Gradient extends Component {
     }
 
     drawColor = (changeHsl) => {
-        const canvas = document.getElementById('gradient');
-        const ctx = canvas.getContext('2d');
-        const rect = canvas.getBoundingClientRect();
-        const cursor = document.getElementById('gradient-cursor');
-        const cursorRect = cursor.getBoundingClientRect();
-        let left = (cursorRect.left + (cursorRect.width/2)) - rect.left;
-        if(left < 0){
-            left = 0;
-        }
-        else if(left > rect.width - 1){
-            left = rect.width - 1;
-        }
-        let top = (cursorRect.top + (cursorRect.height/2)) - rect.top;
-        if(top < 0){
-            top = 0;
-        }
-        else if(top > rect.height - 1){
-            top = rect.height - 1;
-        }
-        const rgb =  ctx.getImageData(left, top, 1, 1).data;
-        this.recolor(rgb);
+        const hsl = this.cursorRef.current.getColorAtCurrentPosition();
+        this.recolor(hsl);
         if(changeHsl){
-            const hsl = convertRgbToHsl(rgb[0], rgb[1], rgb[2]);
             const lightness = this.props.hsl.lightness === hsl.l? this.props.hsl.lightness: hsl.l;
             const saturation = this.props.hsl.saturation === hsl.s? this.props.hsl.saturation: hsl.s;
             this.props.changeHsl({
@@ -115,53 +96,72 @@ export default class Gradient extends Component {
 
     changeCursorPosition = () => {
         let x = 0, y = 0;
-        const l = this.props.hsl.lightness;
-        const s = this.props.hsl.saturation;
-        // If lightness is 0% then this color is black. Set to bottom left corner regardless of other values
-        if(l === 0){
+        const lgt = this.props.hsl.lightness === ''? 0: parseInt(this.props.hsl.lightness);
+        const sat = this.props.hsl.saturation === ''? 0: parseInt(this.props.hsl.saturation);
+        const w = this.props.width;
+        const h = this.props.height;
+        //black
+        if(lgt === 0){
             x = 0;
-            y = this.props.height;
+            y = h;
         }
-
-        // If lightness is 100%, then this color is white. Set to top left corner regardless of other values
-        else if(l === MAX_SL){
+        else if (lgt === MAX_SL){
             x = 0;
             y = 0;
         }
-        
-        // If saturation is 0% then this color will be found along the leftmost edge 
-        else if(s === 0){
+        else if(sat === 0){
             x = 0;
-            // y depends on lightness
+            y = h - (h * (lgt/100));
         }
-
-        // If saturation is 100% then this color will be found along the rightmost edge 
-        else if(s === MAX_SL){
-            x = this.props.width;
-            // y depends on lightness
-        }   
-
-        // Find x coordinate based on saturation
-
-
-
-
-       // this.cursorRef.current.setXCoordinate(x);
-      //  this.cursorRef.current.setYCoordinate(y);
-
-
-/*
-        console.log(document.getElementById('gradient').getBoundingClientRect());
-        console.log(this.props.hsl.saturation + ' ' + this.props.hsl.lightness);*/
+        else if(sat === MAX_SL){
+            if(lgt === MAX_SL/2){
+                x = w;
+                y = 0;
+            }
+            else if(lgt < MAX_SL/2){
+               //x depends on lightness value
+               x = w;
+               y = h * ((50 - lgt)/50);
+            }
+            else {
+                x = w - (w * ((lgt - 50)/50));
+                y = 0;
+               
+            }
+        }
+        else {
+            //placeholder for other cases TODO figure out
+            x = w/2;
+            y = h/2;
+           // console.log(x + ', ' + y);
+        }
+        this.cursorRef.current.setXCoordinate(x);
+        this.cursorRef.current.setYCoordinate(y);
     }
 
-    recolor = (rgb) => {
+    recolor = (hsl) => {
         const canvas = document.getElementById('current-color');
         const ctx = canvas.getContext('2d');
-        const color = 'rgba(' + rgb[0] + ', ' + rgb[1] + ', ' + rgb[2] + ', ' + rgb[3] + ')';
+        const color =  'hsl(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%)'; 
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        this.cursorRef.current.setBackgroundColor(color);
+        this.cursorRef.current.setBackgroundColorBasedOnPosition();
+    }
+
+    handleGradientClick = (e) => {
+        const rect = document.getElementById('gradient').getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        this.cursorRef.current.setXCoordinate(x);
+        this.cursorRef.current.setYCoordinate(y);
+        const hsl = this.cursorRef.current.getColorAtCurrentPosition();
+        this.cursorRef.current.setBackgroundColor([hsl.h, hsl.s, hsl.l]);
+        this.props.changeHsl({
+            hue: hsl.h, 
+            saturation: hsl.s, 
+            lightness: hsl.l,
+            source: ColorChangeSource.GRADIENT
+        });
     }
 
     

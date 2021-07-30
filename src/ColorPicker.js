@@ -3,7 +3,7 @@ import ColorForm from './ColorForm';
 import './ColorPicker.css';
 import Gradient from './Gradient';
 import Slider from './Slider';
-import {convertHexToRgb, convertHslToRgb, convertRgbToHex, convertRgbToHsl, MAX_HUE, MAX_RGB, MAX_SL } from './Utility';
+import {convertHexToRgb, convertHslToRgb, convertRgbToHex, convertRgbToHsl, MAX_HUE, MAX_SL } from './Utility';
 
 
 
