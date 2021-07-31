@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { MAX_SL } from './Utility';
+import { convertRgbToHsl, MAX_SL } from './Utility';
 import './ColorPicker';
 import { ColorChangeSource } from './ColorPicker';
 import Cursor from './Cursor';
@@ -9,23 +9,19 @@ export default class Gradient extends Component {
     constructor(props){
         super(props);
         this.cursorRef = React.createRef();
-        this.changeCursorPosition = this.changeCursorPosition.bind(this);
-        this.drawColor = this.drawColor.bind(this);
-        this.drawGradient = this.drawGradient.bind(this);
     }
 
 	render(){
-        const id = 'gradient';
 	   	return(
             <div className="color-palette">
                 <div className="current-color-container">
                     <canvas id="current-color" height={this.props.height + "px"} width={this.props.width/5 + "px"}></canvas>
                 </div>
-                <div className="gradient-container">
-                    <canvas id={id} height={this.props.height + "px"} width={this.props.width + "px"} onClick={this.handleGradientClick}></canvas>
+                <div className={this.props.id + "-container"}>
+                    <canvas id={this.props.id} height={this.props.height + "px"} width={this.props.width + "px"} onClick={this.handleGradientClick}></canvas>
                     <Cursor ref={this.cursorRef}
-                        id={id + "-cursor"} 
-                        canvasId={id}
+                        id={this.props.id + "-cursor"} 
+                        canvasId={this.props.id}
                         canvasWidth={this.props.width}
                         canvasHeight={this.props.height}
                         handleDrag = {this.handleDrag}
@@ -73,7 +69,7 @@ export default class Gradient extends Component {
     }
 
     drawGradient = () => {
-        const canvas = document.getElementById('gradient');
+        const canvas = document.getElementById(this.props.id);
  		const ctx = canvas.getContext('2d');
  		ctx.drawImage(new Image(), 0, 0, canvas.width, canvas.height);
  		let grd1 = ctx.createLinearGradient(0, 0, canvas.width, 0);
@@ -95,6 +91,8 @@ export default class Gradient extends Component {
 
 
     changeCursorPosition = () => {
+        const canvas = document.getElementById(this.props.id);
+ 		const ctx = canvas.getContext('2d');
         let x = 0, y = 0;
         const lgt = this.props.hsl.lightness === ''? 0: parseInt(this.props.hsl.lightness);
         const sat = this.props.hsl.saturation === ''? 0: parseInt(this.props.hsl.saturation);
@@ -119,7 +117,6 @@ export default class Gradient extends Component {
                 y = 0;
             }
             else if(lgt < MAX_SL/2){
-               //x depends on lightness value
                x = w;
                y = h * ((50 - lgt)/50);
             }
@@ -133,7 +130,21 @@ export default class Gradient extends Component {
             //placeholder for other cases TODO figure out
             x = w/2;
             y = h/2;
-           // console.log(x + ', ' + y);
+            let index = -1;
+            const rgb = ctx.getImageData(0, 0, w - 1, h - 1).data;
+            console.log(rgb.length);
+            for(let i = 0; i < rgb.length/4; i++){
+                const hsl = convertRgbToHsl(rgb[i*4], rgb[i*4+1], rgb[i*4+2]);
+                if(hsl.s === sat && hsl.l === lgt){
+                    index = i;
+                    break;
+                }
+            }
+            if(index >= 0){
+                x = index % w;
+                y = Math.floor(index/w);
+            }
+            console.log(x + ', ' + y);
         }
         this.cursorRef.current.setXCoordinate(x);
         this.cursorRef.current.setYCoordinate(y);
@@ -149,7 +160,7 @@ export default class Gradient extends Component {
     }
 
     handleGradientClick = (e) => {
-        const rect = document.getElementById('gradient').getBoundingClientRect();
+        const rect = document.getElementById(this.props.id).getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         this.cursorRef.current.setXCoordinate(x);

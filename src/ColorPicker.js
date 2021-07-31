@@ -6,7 +6,6 @@ import Slider from './Slider';
 import {convertHexToRgb, convertHslToRgb, convertRgbToHex, convertRgbToHsl, MAX_HUE, MAX_SL } from './Utility';
 
 
-
 export const ColorChangeSource = {
     FORM: 'FORM',
     GRADIENT: 'GRADIENT',
@@ -28,7 +27,7 @@ export default class ColorPicker extends Component {
  		super(props);
         const randomHue = Math.round(Math.random() * MAX_HUE);
         const saturation = MAX_SL;
-        const lightness = 50;
+        const lightness = MAX_SL/2;
         const rgb = convertHslToRgb(randomHue, saturation, lightness);
         const hex = convertRgbToHex(rgb.r, rgb.g, rgb.b);
         this.state = {
@@ -45,22 +44,19 @@ export default class ColorPicker extends Component {
             hex: hex,
             source: ColorChangeSource.SLIDER
         }
-        
-        this.onFormChange = this.onFormChange.bind(this);
-        this.onChangeHsl = this.onChangeHsl.bind(this);
-        this.updateState = this.updateState.bind(this);
+
 	}
 
     render(){
-        const height = 400;
         const width = 600;
+        const height = width/2;
         const sliderWidth = width * 1.2
-        const cursorSize = 24;
+        const cursorSize = width/25;
         return(
             <div className="main-container">
                 <div className="inner-container">
-                    <Gradient hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} height = {height} width = {width} cursorSize = {cursorSize}/>
-                    <Slider hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} width = {sliderWidth} cursorSize={cursorSize}/>
+                    <Gradient id = {"gradient"} hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} height = {height} width = {width} cursorSize = {cursorSize}/>
+                    <Slider id = {"slider"} hsl = {this.state.hsl} source = {this.state.source} changeHsl = {this.onChangeHsl} width = {sliderWidth} cursorSize={cursorSize}/>
                     <ColorForm hsl = {this.state.hsl} rgb = {this.state.rgb} hex = {this.state.hex} changeForm = {this.onFormChange} width = {sliderWidth}/>
                 </div>
             </div>

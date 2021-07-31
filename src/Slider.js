@@ -4,23 +4,20 @@ import './ColorPicker.css';
 import { ColorChangeSource } from './ColorPicker';
 import Cursor from './Cursor';
 
-export default class Gradient extends Component {
+export default class Slider extends Component {
 
     constructor(props){
         super(props);
         this.cursorRef = React.createRef();
-        this.handleDrag = this.handleDrag.bind(this);
-        this.moveCursorToHue = this.moveCursorToHue.bind(this);
     }
 
     render(){
-        const id = 'slider';
         return(
-            <div className="slider-container">
-                <canvas id={id} height={this.props.cursorSize + "px"} width={this.props.width + "px"} onClick={this.handleSliderClick}></canvas>
+            <div className={this.props.id + "-container"}>
+                <canvas id={this.props.id} height={this.props.cursorSize + "px"} width={this.props.width + "px"} onClick={this.handleSliderClick}></canvas>
                 <Cursor ref={this.cursorRef}
-                    id={id + "-cursor"} 
-                    canvasId={id}
+                    id={this.props.id + "-cursor"} 
+                    canvasId={this.props.id}
                     canvasWidth={this.props.width}
                     canvasHeight={this.props.cursorSize}
                     handleDrag = {this.handleDrag}
@@ -39,7 +36,7 @@ export default class Gradient extends Component {
     }
 
     componentDidMount(){
-        const canvas = document.getElementById('slider');
+        const canvas = document.getElementById(this.props.id);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(new Image(), 0, 0, canvas.width, canvas.height);
         let grd = ctx.createLinearGradient(0, 0, canvas.width, 0);
@@ -81,7 +78,7 @@ export default class Gradient extends Component {
     }
 
     handleSliderClick = (e) => {
-        const rect = document.getElementById('slider').getBoundingClientRect();
+        const rect = document.getElementById(this.props.id).getBoundingClientRect();
         const x = e.clientX - rect.left;
         this.cursorRef.current.setXCoordinate(x);
         const hsl = this.cursorRef.current.getColorAtCurrentPosition();
